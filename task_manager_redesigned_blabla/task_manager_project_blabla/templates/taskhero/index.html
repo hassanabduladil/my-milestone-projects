@@ -1,0 +1,195 @@
+{% extends 'partials/base.html' %}
+{% block title %}TaskHero — Manage Your Work{% endblock %}
+
+{% block extra_head %}
+<style>
+    .home-wrap { padding: 0; }
+
+    /* Hero inside card */
+    .home-hero {
+        text-align: center;
+        padding: 3rem 2rem 2.5rem;
+        border-bottom: 1px solid var(--border);
+    }
+    .home-hero h1 {
+        font-family: 'Inter', sans-serif;
+        font-size: clamp(1.8rem, 4vw, 2.8rem);
+        font-weight: 800;
+        letter-spacing: -0.8px;
+        line-height: 1.15;
+        margin-bottom: 1rem;
+    }
+    .home-hero h1 em {
+        font-style: normal;
+        color: var(--indigo-light);
+    }
+    .home-hero p {
+        color: var(--text-muted);
+        font-size: 1rem;
+        max-width: 520px;
+        margin: 0 auto 1.75rem;
+        line-height: 1.7;
+    }
+    .hero-cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+    /* Features */
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1px;
+        background: var(--border);
+    }
+    .feature-item {
+        background: var(--bg-surface);
+        padding: 1.75rem 1.5rem;
+        transition: background 0.2s;
+    }
+    .feature-item:hover { background: var(--bg-raised); }
+    .feature-icon {
+        width: 40px; height: 40px;
+        background: var(--indigo-soft);
+        border-radius: var(--radius-sm);
+        display: flex; align-items: center; justify-content: center;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+        color: var(--indigo-light);
+    }
+    .feature-item h4 {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 0.4rem;
+        color: var(--text-primary);
+    }
+    .feature-item p {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    /* How it works */
+    .how-section { padding: 2.5rem 2rem; border-top: 1px solid var(--border); }
+    .how-section h2 {
+        font-family: 'Inter', sans-serif;
+        font-weight: 800;
+        font-size: 1.4rem;
+        letter-spacing: -0.3px;
+        margin-bottom: 1.75rem;
+        text-align: center;
+    }
+    .steps-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 1.5rem;
+    }
+    .step {
+        text-align: center;
+    }
+    .step-num {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        border: 1px solid var(--indigo);
+        color: var(--indigo-light);
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+    .step h5 {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 700;
+        margin-bottom: 0.35rem;
+    }
+    .step p { font-size: 0.82rem; color: var(--text-muted); margin: 0; line-height: 1.5; }
+
+    /* CTA bottom */
+    .cta-bottom {
+        padding: 2.5rem 2rem;
+        border-top: 1px solid var(--border);
+        text-align: center;
+        background: linear-gradient(135deg, rgba(91,79,232,0.06) 0%, transparent 60%);
+    }
+    .cta-bottom h2 {
+        font-family: 'Inter', sans-serif;
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: -0.4px;
+        margin-bottom: 0.6rem;
+    }
+    .cta-bottom p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="home-wrap">
+
+    <!-- HERO -->
+    <div class="home-hero">
+        <h1>Take Control of Your Tasks<br><em>Like a Pro ⚡</em></h1>
+        <p>TaskHero helps you organize, track, and complete your daily work with ease. Stay focused, stay productive, never miss a deadline.</p>
+        <div class="hero-cta">
+            {% if request.user.is_authenticated %}
+                <a href="{% url 'taskhero:dashboard' %}" class="btn-primary-action">Go to Dashboard</a>
+            {% else %}
+                <a href="{% url 'user:signup' %}" class="btn-primary-action">Get Started Free</a>
+                <a href="{% url 'user:login' %}" class="btn-secondary-action">Login</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- FEATURES -->
+    <div class="features-grid">
+        <div class="feature-item fade-in">
+            <div class="feature-icon"><i class="ti ti-checkbox"></i></div>
+            <h4>Smart Task Management</h4>
+            <p>Create, edit, and organize tasks in a clean and intuitive interface.</p>
+        </div>
+        <div class="feature-item fade-in">
+            <div class="feature-icon"><i class="ti ti-clock"></i></div>
+            <h4>Stay on Track</h4>
+            <p>Set deadlines and priorities so you never miss important work again.</p>
+        </div>
+        <div class="feature-item fade-in">
+            <div class="feature-icon"><i class="ti ti-chart-bar"></i></div>
+            <h4>Boost Productivity</h4>
+            <p>Focus on what matters most and get more done in less time.</p>
+        </div>
+    </div>
+
+    <!-- HOW IT WORKS -->
+    <div class="how-section">
+        <h2>How It Works</h2>
+        <div class="steps-row">
+            <div class="step fade-in">
+                <div class="step-num">1</div>
+                <h5>Sign Up</h5>
+                <p>Create your free account in seconds.</p>
+            </div>
+            <div class="step fade-in">
+                <div class="step-num">2</div>
+                <h5>Add Tasks</h5>
+                <p>Quickly add and organize your daily tasks.</p>
+            </div>
+            <div class="step fade-in">
+                <div class="step-num">3</div>
+                <h5>Stay Productive</h5>
+                <p>Track progress and complete tasks efficiently.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA BOTTOM -->
+    {% if not request.user.is_authenticated %}
+    <div class="cta-bottom">
+        <h2>Ready to Level Up?</h2>
+        <p>Join TaskHero today and start managing your tasks smarter, not harder.</p>
+        <a href="{% url 'user:signup' %}" class="btn-primary-action">Join Now — It's Free 🚀</a>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

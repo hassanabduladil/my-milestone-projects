@@ -1,0 +1,142 @@
+{% extends 'partials/base.html' %}
+{% block title %}Sign Up • TaskHero{% endblock %}
+
+{% block extra_head %}
+<style>
+    .auth-wrap { max-width: 420px; margin: 0 auto; padding: 0.5rem 0; }
+    .auth-heading { font-family: 'Inter', sans-serif; font-size: 1.5rem; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 4px; }
+    .auth-sub { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1.75rem; }
+    .auth-accent { width: 28px; height: 3px; background: var(--indigo); border-radius: 2px; margin-bottom: 1.25rem; }
+    .field-label { font-size: 0.8rem; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; display: block; }
+    .field-wrap { margin-bottom: 14px; position: relative; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 480px) { .field-row { grid-template-columns: 1fr; } }
+    .field-errors { margin-top: 5px; }
+    .field-error { font-size: 0.75rem; color: #F87171; display: block; margin-top: 3px; }
+    .error-box {
+        background: rgba(239,68,68,0.08);
+        border: 1px solid rgba(239,68,68,0.25);
+        border-radius: var(--radius-sm);
+        padding: 10px 14px;
+        margin-bottom: 16px;
+        font-size: 0.82rem;
+        color: #F87171;
+    }
+    .eye-toggle {
+        position: absolute; right: 12px; top: 38px;
+        cursor: pointer; color: var(--text-dim); font-size: 1rem;
+        background: none; border: none; padding: 0; line-height: 1; transition: color 0.2s;
+    }
+    .eye-toggle:hover { color: var(--text-muted); }
+    .auth-divider { display: flex; align-items: center; gap: 12px; margin: 1.25rem 0; color: var(--text-dim); font-size: 0.78rem; }
+    .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .btn-social {
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        width: 100%; padding: 9px; border-radius: var(--radius-sm); font-size: 0.85rem;
+        font-weight: 500; cursor: pointer; transition: 0.2s; margin-bottom: 8px; font-family: 'Inter', sans-serif;
+    }
+    .btn-social-google { background: rgba(255,255,255,0.05); border: 1px solid var(--border-hover); color: var(--text-primary); }
+    .btn-social-google:hover { background: rgba(255,255,255,0.08); }
+    .btn-social-github { background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--text-muted); }
+    .btn-social-github:hover { background: rgba(255,255,255,0.07); color: var(--text-primary); }
+    .auth-footer-link { text-align: center; font-size: 0.82rem; color: var(--text-muted); margin-top: 1.25rem; }
+    .auth-footer-link a { color: var(--indigo-light); text-decoration: none; }
+    .auth-footer-link a:hover { text-decoration: underline; }
+    .btn-submit {
+        width: 100%; padding: 10px; background: var(--indigo); color: #fff; border: none;
+        border-radius: var(--radius-sm); font-family: 'Inter', sans-serif; font-size: 0.9rem;
+        font-weight: 500; cursor: pointer; transition: background 0.2s; margin-top: 4px;
+    }
+    .btn-submit:hover { background: #4a3fd6; }
+    /* Override Django widget styles */
+    input[type=password] { padding-right: 2.5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+    <div class="auth-accent"></div>
+    <h2 class="auth-heading">Create account</h2>
+    <p class="auth-sub">Join TaskHero and start staying organized</p>
+
+    {% if form.non_field_errors %}
+    <div class="error-box">
+        {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="POST" novalidate>
+        {% csrf_token %}
+
+        <div class="field-row">
+            <div class="field-wrap">
+                <label class="field-label" for="{{ form.first_name.id_for_label }}">First Name</label>
+                {{ form.first_name }}
+                {% if form.first_name.errors %}
+                    <div class="field-errors">{% for e in form.first_name.errors %}<span class="field-error">{{ e }}</span>{% endfor %}</div>
+                {% endif %}
+            </div>
+            <div class="field-wrap">
+                <label class="field-label" for="{{ form.last_name.id_for_label }}">Last Name</label>
+                {{ form.last_name }}
+                {% if form.last_name.errors %}
+                    <div class="field-errors">{% for e in form.last_name.errors %}<span class="field-error">{{ e }}</span>{% endfor %}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="field-wrap">
+            <label class="field-label" for="{{ form.username.id_for_label }}">Username</label>
+            {{ form.username }}
+            {% if form.username.errors %}
+                <div class="field-errors">{% for e in form.username.errors %}<span class="field-error">{{ e }}</span>{% endfor %}</div>
+            {% endif %}
+        </div>
+
+        <div class="field-wrap">
+            <label class="field-label" for="{{ form.email.id_for_label }}">Email</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+                <div class="field-errors">{% for e in form.email.errors %}<span class="field-error">{{ e }}</span>{% endfor %}</div>
+            {% endif %}
+        </div>
+
+        <div class="field-wrap">
+            <label class="field-label" for="{{ form.password1.id_for_label }}">Password</label>
+            {{ form.password1 }}
+            <button type="button" class="eye-toggle" onclick="togglePwd('{{ form.password1.id_for_label }}', this)"><i class="ti ti-eye"></i></button>
+            {% if form.password1.errors %}
+                <div class="field-errors">{% for e in form.password1.errors %}<span class="field-error">{{ e }}</span>{% endfor %}</div>
+            {% endif %}
+        </div>
+
+        <div class="field-wrap">
+            <label class="field-label" for="{{ form.password2.id_for_label }}">Confirm Password</label>
+            {{ form.password2 }}
+            <button type="button" class="eye-toggle" onclick="togglePwd('{{ form.password2.id_for_label }}', this)"><i class="ti ti-eye"></i></button>
+            {% if form.password2.errors %}
+                <div class="field-errors">{% for e in form.password2.errors %}<span class="field-error">{{ e }}</span>{% endfor %}</div>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn-submit">Create Account</button>
+    </form>
+
+    <div class="auth-divider">or continue with</div>
+    <button class="btn-social btn-social-google"><i class="ti ti-brand-google"></i> Google</button>
+    <button class="btn-social btn-social-github"><i class="ti ti-brand-github"></i> GitHub</button>
+
+    <div class="auth-footer-link">
+        Already have an account? <a href="{% url 'user:login' %}">Sign in</a>
+    </div>
+</div>
+
+<script>
+function togglePwd(id, btn) {
+    const input = document.getElementById(id);
+    const icon = btn.querySelector('i');
+    if (input.type === 'password') { input.type = 'text'; icon.className = 'ti ti-eye-off'; }
+    else { input.type = 'password'; icon.className = 'ti ti-eye'; }
+}
+</script>
+{% endblock %}

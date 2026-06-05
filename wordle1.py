@@ -135,13 +135,6 @@ BG = {
     'empty':  '\033[48;2;22;22;24m',
     'active': '\033[48;2;30;30;33m',
 }
-# Keyboard key colours
-KB = {
-    'green':   '\033[48;2;83;141;78m\033[97m',
-    'yellow':  '\033[48;2;181;159;59m\033[97m',
-    'gray':    '\033[48;2;42;42;44m\033[38;2;100;100;102m',
-    'unused':  '\033[48;2;38;38;42m\033[38;2;200;200;204m',
-}
 
 WHITE  = '\033[97m\033[1m'
 DIM    = '\033[38;2;90;90;95m'
@@ -189,29 +182,6 @@ def score_guess(guess, word):
 
     return result
 
-def keyboard_state(guesses_scored):
-    """
-    Track best known state of each keyboard key.
-    Priority: green > yellow > gray > unused
-    """
-    priority = {'green': 3, 'yellow': 2, 'gray': 1, 'unused': 0}
-    state = {}
-    for guess, scores in guesses_scored:
-        for letter, score in zip(guess, scores):
-            if priority.get(score, 0) > priority.get(state.get(letter, 'unused'), 0):
-                state[letter] = score
-    return state
-
-def draw_keyboard(kb_state):
-    rows = ["qwertyuiop", "asdfghjkl", "zxcvbnm"]
-    pad = ["", " ", "   "]
-    print()
-    for i, row in enumerate(rows):
-        print(f"  {pad[i]}", end="")
-        for ch in row:
-            st = kb_state.get(ch, 'unused')
-            print(f"{KB[st]} {ch.upper()} {R}", end=" ")
-        print()
 
 def draw_board(guesses_scored, current_input="", message="", max_attempts=6):
     clr()
@@ -241,12 +211,8 @@ def draw_board(guesses_scored, current_input="", message="", max_attempts=6):
         print()
         print()
 
-    # ── Keyboard ──────────────────────────────────────────────────────────────
-    print(f"  {DIM}{'━' * 33}{R}")
-    draw_keyboard(keyboard_state(guesses_scored))
-    print(f"  {DIM}{'━' * 33}{R}")
-
     # ── Message area ──────────────────────────────────────────────────────────
+    print(f"  {DIM}{'━' * 33}{R}")
     if message:
         print(f"\n  {message}")
     else:

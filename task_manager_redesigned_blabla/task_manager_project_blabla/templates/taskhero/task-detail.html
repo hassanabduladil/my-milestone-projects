@@ -1,0 +1,233 @@
+{% extends 'partials/base.html' %}
+{% block title %}{{ task.title }} • TaskHero{% endblock %}
+
+{% block extra_head %}
+<style>
+    .detail-wrap { max-width: 640px; margin: 0 auto; }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        margin-bottom: 1.5rem;
+        transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--text-primary); }
+
+    .detail-header { margin-bottom: 1.25rem; }
+
+    .detail-title {
+        font-family: 'Inter', sans-serif;
+        font-size: 1.6rem;
+        font-weight: 800;
+        letter-spacing: -0.4px;
+        line-height: 1.2;
+        margin-bottom: 0.75rem;
+    }
+
+    .detail-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.25rem; }
+
+    .status-badge, .prio-badge, .overdue-badge {
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        padding: 4px 10px;
+        border-radius: 4px;
+    }
+    .status-todo   { background: rgba(107,114,128,0.15); color: #9CA3AF; }
+    .status-ip     { background: rgba(245,158,11,0.12);  color: #FCD34D; }
+    .status-done   { background: rgba(16,185,129,0.12);  color: #34D399; }
+    .prio-high     { background: rgba(239,68,68,0.12);   color: #F87171; }
+    .prio-mid      { background: rgba(245,158,11,0.12);  color: #FCD34D; }
+    .prio-low      { background: rgba(16,185,129,0.12);  color: #34D399; }
+    .overdue-badge { background: rgba(239,68,68,0.12);   color: #F87171; }
+
+    .detail-divider { height: 1px; background: var(--border); margin: 1.25rem 0; }
+
+    .detail-desc {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        line-height: 1.75;
+        margin-bottom: 1.25rem;
+    }
+
+    .meta-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+    }
+    .meta-row i { color: var(--text-dim); font-size: 1rem; }
+    .meta-label { color: var(--text-dim); }
+
+    .action-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 1.75rem;
+    }
+    .btn-edit {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 0.875rem; font-weight: 500;
+        color: var(--text-muted);
+        background: transparent;
+        border: 1px solid var(--border-hover);
+        border-radius: var(--radius-sm);
+        padding: 8px 18px;
+        text-decoration: none;
+        transition: 0.2s;
+        cursor: pointer;
+        font-family: 'Inter', sans-serif;
+    }
+    .btn-edit:hover { color: var(--text-primary); border-color: rgba(255,255,255,0.25); }
+
+    .btn-complete {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 0.875rem; font-weight: 500;
+        color: #fff;
+        background: var(--indigo);
+        border: none;
+        border-radius: var(--radius-sm);
+        padding: 8px 18px;
+        text-decoration: none;
+        transition: 0.2s;
+        cursor: pointer;
+        font-family: 'Inter', sans-serif;
+    }
+    .btn-complete:hover { background: #4a3fd6; color: #fff; }
+
+    .btn-delete {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 0.875rem; font-weight: 500;
+        color: #F87171;
+        background: rgba(239,68,68,0.08);
+        border: 1px solid rgba(239,68,68,0.2);
+        border-radius: var(--radius-sm);
+        padding: 8px 18px;
+        cursor: pointer;
+        transition: 0.2s;
+        font-family: 'Inter', sans-serif;
+    }
+    .btn-delete:hover { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.4); }
+
+    /* Modal */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.65);
+        z-index: 200;
+        align-items: center;
+        justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+        background: var(--bg-raised);
+        border: 1px solid var(--border-hover);
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        width: 90%;
+        max-width: 360px;
+        text-align: center;
+    }
+    .modal-icon {
+        width: 44px; height: 44px;
+        background: rgba(239,68,68,0.1);
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 1rem;
+        color: #F87171;
+        font-size: 1.2rem;
+    }
+    .modal-box h5 {
+        font-family: 'Inter', sans-serif;
+        font-weight: 800;
+        font-size: 1rem;
+        margin-bottom: 6px;
+    }
+    .modal-box p {
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        margin-bottom: 1.25rem;
+    }
+    .modal-actions { display: flex; gap: 10px; justify-content: center; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-wrap">
+
+    <a href="{% url 'taskhero:dashboard' %}" class="back-link">
+        <i class="ti ti-arrow-left"></i> Back to Dashboard
+    </a>
+
+    <div class="detail-header">
+        <div class="detail-title">{{ task.title }}</div>
+
+        <div class="detail-badges">
+            {% if task.is_overdue %}
+                <span class="overdue-badge">Overdue</span>
+            {% endif %}
+            <span class="status-badge {% if task.status == 'td' %}status-todo{% elif task.status == 'ip' %}status-ip{% else %}status-done{% endif %}">
+                {{ task.get_status_display }}
+            </span>
+            <span class="prio-badge {% if task.priority == 'high' %}prio-high{% elif task.priority == 'mid' %}prio-mid{% else %}prio-low{% endif %}">
+                {{ task.get_priority_display }} Priority
+            </span>
+        </div>
+    </div>
+
+    <div class="detail-divider"></div>
+
+    {% if task.description %}
+    <div class="detail-desc">{{ task.description }}</div>
+    <div class="detail-divider"></div>
+    {% endif %}
+
+    <div class="meta-row">
+        <i class="ti ti-calendar"></i>
+        <span class="meta-label">Due date</span>
+        <span>{{ task.due_date }}</span>
+    </div>
+
+    <div class="action-row">
+        <a href="{% url 'taskhero:update_task' task.pk %}" class="btn-edit">
+            <i class="ti ti-edit"></i> Edit
+        </a>
+
+        {% if task.status != 'cmp' %}
+        <a href="{% url 'taskhero:mark_completed' task.pk %}" class="btn-complete">
+            <i class="ti ti-check"></i> Mark as Completed
+        </a>
+        {% endif %}
+
+        <button class="btn-delete" onclick="document.getElementById('deleteModal').classList.add('open')">
+            <i class="ti ti-trash"></i> Delete
+        </button>
+    </div>
+
+</div>
+
+<!-- DELETE MODAL -->
+<div id="deleteModal" class="modal-overlay" onclick="if(event.target===this)this.classList.remove('open')">
+    <div class="modal-box">
+        <div class="modal-icon"><i class="ti ti-trash"></i></div>
+        <h5>Delete this task?</h5>
+        <p>This action cannot be undone.</p>
+        <div class="modal-actions">
+            <button class="btn-edit" onclick="document.getElementById('deleteModal').classList.remove('open')">
+                Cancel
+            </button>
+            <form method="POST" action="{% url 'taskhero:delete' task.pk %}" style="margin:0;">
+                {% csrf_token %}
+                <button type="submit" class="btn-delete">Yes, Delete</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

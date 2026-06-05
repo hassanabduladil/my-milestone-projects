@@ -1,20 +1,6 @@
-# ┌─────────────────────────────────────────────────────┐
-# │                      WORDLE                         │
-# │           Terminal Edition  •  Python 3             │
-# │  Requires: pip install colorama                     │
-# └─────────────────────────────────────────────────────┘
+import random
 
-import os, sys, random
-try:
-    import colorama
-    from colorama import Style
-    colorama.init(autoreset=False)
-except ImportError:
-    print("Please install colorama first:  pip install colorama")
-    sys.exit(1)
-
-# ── Wordle word list ──────────────────────────────────────────────────────────
-WORDS = [
+wordle_solutions = [
 "cigar","rebut","sissy","humph","awake","blush","focal","evade","naval","serve",
 "heath","dwarf","model","karma","stink","grade","quiet","bench","abate","feign",
 "major","death","fresh","crust","stool","colon","abase","marry","react","batty",
@@ -121,186 +107,93 @@ WORDS = [
 "blank","villa","shank","piggy","freak","which","among","fecal","shell","would",
 "algae","large","rabbi","agony","amuse","bushy","copse","swoon","knife","pouch",
 "ascot","plane","crown","urban","snide","relay","abide","viola","rajah","straw",
-"dilly","crash","amass","third","trick","tutor","woody","bloke","fatig","flown",
+"dilly","crash","amass","third","trick","tutor","woody","bloke","fatig","flown"
 ]
 
-# ── Colour palette (true-colour ANSI) ─────────────────────────────────────────
-R = Style.RESET_ALL
+# ── ANSI colour helpers ───────────────────────────────────────────────────────
+RESET  = "\033[0m"
+BOLD   = "\033[1m"
 
-# Tile backgrounds
-BG = {
-    'green':  '\033[48;2;83;141;78m',
-    'yellow': '\033[48;2;181;159;59m',
-    'gray':   '\033[48;2;58;58;60m',
-    'empty':  '\033[48;2;22;22;24m',
-    'active': '\033[48;2;30;30;33m',
-}
-# Keyboard key colours
-KB = {
-    'green':   '\033[48;2;83;141;78m\033[97m',
-    'yellow':  '\033[48;2;181;159;59m\033[97m',
-    'gray':    '\033[48;2;42;42;44m\033[38;2;100;100;102m',
-    'unused':  '\033[48;2;38;38;42m\033[38;2;200;200;204m',
-}
+BG_GREEN  = "\033[42m"   # correct letter, correct spot
+BG_YELLOW = "\033[43m"   # correct letter, wrong spot
+BG_GRAY   = "\033[100m"  # letter not in word
+FG_WHITE  = "\033[97m"
 
-WHITE  = '\033[97m\033[1m'
-DIM    = '\033[38;2;90;90;95m'
-BRIGHT = '\033[38;2;255;255;255m\033[1m'
-ACCENT = '\033[38;2;83;141;78m\033[1m'
-WARN   = '\033[38;2;220;80;80m\033[1m'
-INFO   = '\033[38;2;181;159;59m\033[1m'
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
-def clr():
-    os.system('cls' if os.name == 'nt' else 'clear')
+def colour_tile(letter, bg):
+    """Return a padded, coloured tile for one letter."""
+    return f"{bg}{FG_WHITE}{BOLD} {letter.upper()} {RESET}"
 
-def tile(letter, state):
-    """Render one coloured letter tile."""
-    bg = BG.get(state, BG['gray'])
-    text = f" {letter.upper()} "
-    if state == 'empty':
-        return f"{bg}\033[38;2;55;55;58m{text}{R}"
-    elif state == 'active':
-        return f"{bg}{WHITE}{text}{R}"
-    else:
-        return f"{bg}{WHITE}{text}{R}"
 
-def score_guess(guess, word):
-    """
-    Correct Wordle scoring — handles duplicate letters properly.
-    Green pass first, then yellow only for unmatched remaining letters.
-    """
-    result = ['gray'] * 5
-    remaining = list(word)
-
-    # Pass 1 — exact matches (green)
-    for i in range(5):
-        if guess[i] == word[i]:
-            result[i] = 'green'
-            remaining[i] = None          # consume this letter
-
-    # Pass 2 — wrong-position matches (yellow)
-    for i in range(5):
-        if result[i] == 'green':
-            continue
-        if guess[i] in remaining:
-            result[i] = 'yellow'
-            remaining[remaining.index(guess[i])] = None  # consume once
-
-    return result
-
-def keyboard_state(guesses_scored):
-    """
-    Track best known state of each keyboard key.
-    Priority: green > yellow > gray > unused
-    """
-    priority = {'green': 3, 'yellow': 2, 'gray': 1, 'unused': 0}
-    state = {}
-    for guess, scores in guesses_scored:
-        for letter, score in zip(guess, scores):
-            if priority.get(score, 0) > priority.get(state.get(letter, 'unused'), 0):
-                state[letter] = score
-    return state
-
-def draw_keyboard(kb_state):
-    rows = ["qwertyuiop", "asdfghjkl", "zxcvbnm"]
-    pad = ["", " ", "   "]
-    print()
-    for i, row in enumerate(rows):
-        print(f"  {pad[i]}", end="")
-        for ch in row:
-            st = kb_state.get(ch, 'unused')
-            print(f"{KB[st]} {ch.upper()} {R}", end=" ")
-        print()
-
-def draw_board(guesses_scored, current_input="", message="", max_attempts=6):
-    clr()
-
-    # ── Header ────────────────────────────────────────────────────────────────
-    print()
-    print(f"  {DIM}{'━' * 33}{R}")
-    print(f"  {BRIGHT}        W  O  R  D  L  E{R}")
-    print(f"  {DIM}{'━' * 33}{R}")
-    print()
-
-    # ── Grid ──────────────────────────────────────────────────────────────────
-    for row in range(max_attempts):
-        print("   ", end="")
-        if row < len(guesses_scored):
-            guess, scores = guesses_scored[row]
-            for i, letter in enumerate(guess):
-                print(tile(letter, scores[i]), end="  ")
-        elif row == len(guesses_scored):
-            for i in range(5):
-                ch = current_input[i] if i < len(current_input) else ' '
-                state = 'active' if i < len(current_input) else 'empty'
-                print(tile(ch, state), end="  ")
+def render_guess(user_guess, word):
+    """Build and print the coloured row for one guess."""
+    tiles = []
+    for i, letter in enumerate(user_guess):
+        if letter == word[i]:
+            tiles.append(colour_tile(letter, BG_GREEN))
+        elif letter in word:
+            tiles.append(colour_tile(letter, BG_YELLOW))
         else:
-            for _ in range(5):
-                print(tile(' ', 'empty'), end="  ")
+            tiles.append(colour_tile(letter, BG_GRAY))
+    print("  " + " ".join(tiles))
+
+
+def print_header():
+    print()
+    print(f"  {BOLD}W O R D L E{RESET}")
+    print("  " + "─" * 21)
+    print()
+
+
+def print_empty_rows(count):
+    """Print placeholder empty rows."""
+    empty_row = f"  " + " ".join([f"\033[90m[ _ ]{RESET}"] * 5)
+    for _ in range(count):
+        print(empty_row)
+
+
+# ── Game ──────────────────────────────────────────────────────────────────────
+word = random.choice(wordle_solutions)
+max_attempts = 6
+guesses = []
+
+print_header()
+print_empty_rows(max_attempts)
+
+for attempt in range(1, max_attempts + 1):
+    # Move cursor up to reprint the board cleanly
+    rows_to_clear = max_attempts - attempt + 2   # empty rows left + spacing
+    print(f"\033[{max_attempts + 2}A", end="")   # move up past all rows + spacing
+
+    # Reprint all previous guesses + remaining empty rows
+    for g in guesses:
+        render_guess(g, word)
+    print_empty_rows(max_attempts - len(guesses))
+
+    print()
+    user_guess = input(f"  Guess {attempt}/6 → ").lower().strip()
+
+    if len(user_guess) != 5:
+        print(f"  \033[91mPlease enter a 5-letter word.\033[0m")
+        attempt -= 1   # this won't decrement the for-loop; handle with a while instead
+        continue
+
+    guesses.append(user_guess)
+
+    if user_guess == word:
+        # Final board repaint
+        print(f"\033[{max_attempts + 2}A", end="")
+        for g in guesses:
+            render_guess(g, word)
+        print_empty_rows(max_attempts - len(guesses))
         print()
+        print(f"  {BG_GREEN}{FG_WHITE}{BOLD}  You got it in {attempt}!  {RESET}")
         print()
-
-    # ── Keyboard ──────────────────────────────────────────────────────────────
-    print(f"  {DIM}{'━' * 33}{R}")
-    draw_keyboard(keyboard_state(guesses_scored))
-    print(f"  {DIM}{'━' * 33}{R}")
-
-    # ── Message area ──────────────────────────────────────────────────────────
-    if message:
-        print(f"\n  {message}")
-    else:
-        print()
-
-# ── Main game loop ────────────────────────────────────────────────────────────
-def play():
-    word = random.choice(WORDS)
-    max_attempts = 6
-    guesses_scored = []
-    message = f"  {DIM}Guess the 5-letter word  •  6 tries{R}"
-
-    draw_board(guesses_scored, message=message)
-
-    for attempt in range(1, max_attempts + 1):
-        # Input loop — keep asking until we get a valid 5-letter word
-        while True:
-            try:
-                raw = input(f"  {DIM}›{R} ").strip().lower()
-            except (EOFError, KeyboardInterrupt):
-                print(f"\n\n  {DIM}Thanks for playing!{R}\n")
-                return
-
-            if len(raw) != 5 or not raw.isalpha():
-                msg = f"{WARN}  ✘  Please enter a valid 5-letter word.{R}"
-                draw_board(guesses_scored, current_input=raw[:5], message=msg)
-                continue
-
-            break   # valid input
-
-        scores = score_guess(raw, word)
-        guesses_scored.append((raw, scores))
-
-        if raw == word:
-            draw_board(guesses_scored, message="")
-            reactions = ["Genius!", "Magnificent!", "Impressive!", "Splendid!", "Great!", "Phew!"]
-            reaction  = reactions[attempt - 1]
-            print(f"  {ACCENT}✔  {reaction}  You got it in {attempt}/6!{R}\n")
-            break
-        else:
-            remaining = max_attempts - attempt
-            if remaining == 0:
-                draw_board(guesses_scored, message="")
-                print(f"  {WARN}✘  Hard luck!  The word was  {BRIGHT}{word.upper()}{R}\n")
-            else:
-                msg = f"  {DIM}{remaining} guess{'es' if remaining != 1 else ''} remaining{R}"
-                draw_board(guesses_scored, message=msg)
-
-    # Play again?
-    again = input(f"  {DIM}Play again? (y / n)  ›{R} ").strip().lower()
-    if again == 'y':
-        play()
-    else:
-        print(f"\n  {DIM}Thanks for playing!  See you tomorrow.{R}\n")
-
-if __name__ == "__main__":
-    play()
+        break
+else:
+    print(f"\033[{max_attempts + 2}A", end="")
+    for g in guesses:
+        render_guess(g, word)
+    print()
+    print(f"  \033[91m{BOLD}The word was: {word.upper()}{RESET}")
+    print()

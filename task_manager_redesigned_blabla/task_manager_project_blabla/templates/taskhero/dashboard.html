@@ -1,0 +1,257 @@
+{% extends 'partials/base.html' %}
+{% block title %}Dashboard • TaskHero{% endblock %}
+
+{% block extra_head %}
+<style>
+    .dash-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.75rem;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    .dash-header h2 {
+        font-family: 'Inter', sans-serif;
+        font-size: 1.35rem;
+        font-weight: 800;
+        letter-spacing: -0.3px;
+        margin: 0;
+    }
+
+    /* Kanban board */
+    .kanban-board {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+    @media (max-width: 768px) {
+        .kanban-board { grid-template-columns: 1fr; }
+    }
+
+    .kanban-col {
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 16px;
+        min-height: 360px;
+    }
+
+    .col-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 14px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+    }
+    .col-dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+    .col-dot.todo     { background: #6B7280; }
+    .col-dot.inprog   { background: var(--warning); }
+    .col-dot.done     { background: var(--success); }
+
+    .col-label {
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+    }
+    .col-count {
+        margin-left: auto;
+        font-size: 0.72rem;
+        font-weight: 600;
+        background: rgba(255,255,255,0.06);
+        border-radius: 20px;
+        padding: 1px 8px;
+        color: var(--text-muted);
+    }
+
+    /* Task card */
+    .task-card {
+        background: var(--bg-raised);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 14px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: border-color 0.2s, transform 0.15s;
+    }
+    .task-card:hover {
+        border-color: var(--border-hover);
+        transform: translateY(-2px);
+    }
+    .task-card:last-child { margin-bottom: 0; }
+
+    .task-card-title {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        margin-bottom: 6px;
+        line-height: 1.4;
+    }
+    .task-card-desc {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        line-height: 1.5;
+        margin-bottom: 10px;
+    }
+    .task-card-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .task-date {
+        font-size: 0.75rem;
+        color: var(--text-dim);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* Priority badge */
+    .prio-badge {
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        padding: 2px 8px;
+        border-radius: 4px;
+    }
+    .prio-high   { background: rgba(239,68,68,0.12);  color: #F87171; }
+    .prio-mid    { background: rgba(245,158,11,0.12); color: #FCD34D; }
+    .prio-low    { background: rgba(16,185,129,0.12); color: #34D399; }
+
+    /* Overdue badge */
+    .badge-overdue {
+        font-size: 0.68rem;
+        font-weight: 600;
+        background: rgba(239,68,68,0.12);
+        color: #F87171;
+        padding: 2px 7px;
+        border-radius: 4px;
+        margin-bottom: 6px;
+        display: inline-block;
+    }
+
+    /* Empty state */
+    .col-empty {
+        text-align: center;
+        padding: 2rem 1rem;
+        color: var(--text-dim);
+        font-size: 0.82rem;
+    }
+    .col-empty i { font-size: 1.5rem; display: block; margin-bottom: 8px; opacity: 0.4; }
+
+    /* Board empty state */
+    .board-empty {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--text-muted);
+    }
+    .board-empty i { font-size: 2.5rem; display: block; margin-bottom: 1rem; color: var(--indigo-light); opacity: 0.5; }
+    .board-empty h4 { font-family: 'Inter', sans-serif; font-size: 1.1rem; font-weight: 800; margin-bottom: 0.4rem; }
+    .board-empty p { font-size: 0.85rem; margin-bottom: 1.25rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="dash-header">
+    <h2>Your Tasks</h2>
+    <a href="{% url 'taskhero:create_task' %}" class="btn-primary-action">
+        <i class="ti ti-plus"></i> New Task
+    </a>
+</div>
+
+{% if tasks %}
+<div class="kanban-board">
+
+    <!-- TO DO -->
+    <div class="kanban-col">
+        <div class="col-header">
+            <div class="col-dot todo"></div>
+            <span class="col-label">To Do</span>
+            <span class="col-count">{{ tasks|length }}</span>
+        </div>
+        {% for task in tasks %}{% if task.status == 'td' %}
+        <div class="task-card" onclick="window.location.href='{% url 'taskhero:task_detail' task.pk %}'">
+            {% if task.is_overdue %}<span class="badge-overdue">Overdue</span>{% endif %}
+            <div class="task-card-title">{{ task.title }}</div>
+            {% if task.description %}
+            <div class="task-card-desc">{{ task.description|truncatewords:10 }}</div>
+            {% endif %}
+            <div class="task-card-footer">
+                <span class="prio-badge {% if task.priority == 'high' %}prio-high{% elif task.priority == 'mid' %}prio-mid{% else %}prio-low{% endif %}">
+                    {{ task.get_priority_display }}
+                </span>
+                <span class="task-date"><i class="ti ti-calendar" style="font-size:12px;"></i> {{ task.due_date }}</span>
+            </div>
+        </div>
+        {% endif %}{% endfor %}
+    </div>
+
+    <!-- IN PROGRESS -->
+    <div class="kanban-col">
+        <div class="col-header">
+            <div class="col-dot inprog"></div>
+            <span class="col-label">In Progress</span>
+        </div>
+        {% for task in tasks %}{% if task.status == 'ip' %}
+        <div class="task-card" onclick="window.location.href='{% url 'taskhero:task_detail' task.pk %}'">
+            {% if task.is_overdue %}<span class="badge-overdue">Overdue</span>{% endif %}
+            <div class="task-card-title">{{ task.title }}</div>
+            {% if task.description %}
+            <div class="task-card-desc">{{ task.description|truncatewords:10 }}</div>
+            {% endif %}
+            <div class="task-card-footer">
+                <span class="prio-badge {% if task.priority == 'high' %}prio-high{% elif task.priority == 'mid' %}prio-mid{% else %}prio-low{% endif %}">
+                    {{ task.get_priority_display }}
+                </span>
+                <span class="task-date"><i class="ti ti-calendar" style="font-size:12px;"></i> {{ task.due_date }}</span>
+            </div>
+        </div>
+        {% endif %}{% endfor %}
+    </div>
+
+    <!-- COMPLETED -->
+    <div class="kanban-col">
+        <div class="col-header">
+            <div class="col-dot done"></div>
+            <span class="col-label">Completed</span>
+        </div>
+        {% for task in tasks %}{% if task.status == 'cmp' %}
+        <div class="task-card" onclick="window.location.href='{% url 'taskhero:task_detail' task.pk %}'">
+            <div class="task-card-title" style="color:var(--text-muted); text-decoration:line-through;">{{ task.title }}</div>
+            {% if task.description %}
+            <div class="task-card-desc">{{ task.description|truncatewords:10 }}</div>
+            {% endif %}
+            <div class="task-card-footer">
+                <span class="prio-badge prio-low">Done</span>
+                <span class="task-date"><i class="ti ti-calendar" style="font-size:12px;"></i> {{ task.due_date }}</span>
+            </div>
+        </div>
+        {% endif %}{% endfor %}
+    </div>
+
+</div>
+{% else %}
+<div class="kanban-board">
+    <div class="board-empty">
+        <i class="ti ti-clipboard-list"></i>
+        <h4>No tasks yet</h4>
+        <p>Create your first task and start getting things done.</p>
+        <a href="{% url 'taskhero:create_task' %}" class="btn-primary-action">
+            <i class="ti ti-plus"></i> Create Your First Task
+        </a>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,359 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}TaskHero{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon.png' %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        :root {
+            --bg-base:     #0b0c18;
+            --bg-surface:  #13141f;
+            --bg-raised:   #1a1b2e;
+            --border:      rgba(255,255,255,0.07);
+            --border-hover:rgba(255,255,255,0.13);
+            --indigo:      #5B4FE8;
+            --indigo-soft: rgba(91,79,232,0.14);
+            --indigo-light:#8B81FF;
+            --text-primary:#f0f0f8;
+            --text-muted:  rgba(240,240,248,0.45);
+            --text-dim:    rgba(240,240,248,0.25);
+            --success:     #10B981;
+            --warning:     #F59E0B;
+            --danger:      #EF4444;
+            --radius-sm:   8px;
+            --radius-md:   12px;
+            --radius-lg:   16px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-base);
+            color: var(--text-primary);
+            margin: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── NAVBAR ── */
+        .site-nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(11,12,24,0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-left { display: flex; align-items: center; gap: 2rem; }
+
+        .nav-logo {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-decoration: none;
+            letter-spacing: -0.3px;
+        }
+        .nav-logo:hover { color: var(--text-primary); }
+
+        .nav-logo span {
+            display: inline-block;
+            width: 8px; height: 8px;
+            background: var(--indigo);
+            border-radius: 50%;
+            margin-left: 3px;
+            vertical-align: middle;
+            position: relative;
+            top: -1px;
+        }
+
+        .nav-links { display: flex; gap: 0.25rem; list-style: none; margin: 0; padding: 0; }
+
+        .nav-links a {
+            font-size: 0.875rem;
+            font-weight: 400;
+            color: var(--text-muted);
+            text-decoration: none;
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            transition: color 0.2s, background 0.2s;
+        }
+        .nav-links a:hover { color: var(--text-primary); background: rgba(255,255,255,0.05); }
+        .nav-links a.active { color: var(--text-primary); }
+
+        .nav-right { display: flex; align-items: center; gap: 0.5rem; }
+
+        .btn-nav-outline {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            background: transparent;
+            border: 1px solid var(--border-hover);
+            border-radius: var(--radius-sm);
+            padding: 6px 16px;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+        .btn-nav-outline:hover { color: var(--text-primary); border-color: rgba(255,255,255,0.25); }
+
+        .btn-nav-primary {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #fff;
+            background: var(--indigo);
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 7px 18px;
+            text-decoration: none;
+            transition: 0.2s;
+            cursor: pointer;
+        }
+        .btn-nav-primary:hover { background: #4a3fd6; color: #fff; }
+
+        .btn-logout {
+            font-size: 0.875rem;
+            font-weight: 400;
+            color: var(--text-muted);
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 6px 14px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-logout:hover { color: var(--danger); border-color: rgba(239,68,68,0.35); }
+
+        /* ── GLOBAL BUTTON ── */
+        .btn-primary-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #fff;
+            background: var(--indigo);
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 9px 20px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-primary-action:hover { background: #4a3fd6; color: #fff; transform: translateY(-1px); }
+
+        .btn-secondary-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 400;
+            color: var(--text-muted);
+            background: transparent;
+            border: 1px solid var(--border-hover);
+            border-radius: var(--radius-sm);
+            padding: 9px 20px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-secondary-action:hover { color: var(--text-primary); border-color: rgba(255,255,255,0.25); }
+
+        /* ── GLASS CARD (kept for compat) ── */
+        .glass-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+        }
+
+        /* ── HERO ── */
+        .hero {
+            text-align: center;
+            padding: 80px 20px 40px;
+        }
+        .hero h1 {
+            font-family: 'Inter', sans-serif;
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            font-weight: 700;
+            letter-spacing: -1px;
+            line-height: 1.1;
+            color: var(--text-primary);
+        }
+        .hero p { color: var(--text-muted); margin-top: 14px; font-size: 1.05rem; }
+
+        /* ── FADE IN ── */
+        .fade-in { opacity: 0; transform: translateY(18px); transition: opacity 0.6s ease, transform 0.6s ease; }
+        .fade-in.show { opacity: 1; transform: translateY(0); }
+
+        /* ── FOOTER ── */
+        .site-footer {
+            border-top: 1px solid var(--border);
+            padding: 28px 2rem;
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.82rem;
+            margin-top: 4rem;
+        }
+
+        /* ── FORM CONTROLS (global) ── */
+        .form-control, .form-select {
+            background: rgba(255,255,255,0.05) !important;
+            border: 1px solid var(--border-hover) !important;
+            color: var(--text-primary) !important;
+            border-radius: var(--radius-sm) !important;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+        }
+        .form-control::placeholder { color: var(--text-muted) !important; }
+        .form-control:focus, .form-select:focus {
+            box-shadow: 0 0 0 3px rgba(91,79,232,0.25) !important;
+            border-color: var(--indigo) !important;
+            background: rgba(255,255,255,0.07) !important;
+            color: var(--text-primary) !important;
+        }
+        .form-select option { background: #1a1b2e; color: var(--text-primary); }
+
+        /* ── MOBILE NAV TOGGLE ── */
+        .nav-toggler {
+            display: none;
+            background: none;
+            border: 1px solid var(--border-hover);
+            border-radius: var(--radius-sm);
+            color: var(--text-muted);
+            padding: 5px 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .nav-toggler { display: block; }
+            .nav-collapsible {
+                display: none;
+                position: absolute;
+                top: 60px;
+                left: 0; right: 0;
+                background: rgba(11,12,24,0.97);
+                border-bottom: 1px solid var(--border);
+                padding: 1rem 1.5rem;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            .nav-collapsible.open { display: flex; }
+            .nav-links { flex-direction: column; }
+            .nav-right { flex-direction: column; align-items: stretch; }
+            .site-nav { position: relative; }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="site-nav">
+    <div class="nav-left">
+        <a href="{% url 'taskhero:home' %}" class="nav-logo">TaskHero<span></span></a>
+        <ul class="nav-links d-none d-md-flex">
+            <li><a href="{% url 'taskhero:home' %}">Home</a></li>
+            <li><a href="{% url 'taskhero:dashboard' %}">Dashboard</a></li>
+        </ul>
+    </div>
+
+    <div class="nav-right d-none d-md-flex">
+        {% if request.user.is_authenticated %}
+            <span style="font-size:0.85rem; color:var(--text-muted); margin-right:4px;">
+                Hi, {{ request.user.username }}
+            </span>
+            <form action="{% url 'user:logout' %}" method="POST" style="margin:0;">
+                {% csrf_token %}
+                <button type="submit" class="btn-logout">Log out</button>
+            </form>
+        {% else %}
+            <a href="{% url 'user:login' %}" class="btn-nav-outline">Login</a>
+            <a href="{% url 'user:signup' %}" class="btn-nav-primary">Get Started</a>
+        {% endif %}
+    </div>
+
+    <button class="nav-toggler d-md-none" onclick="toggleMobileNav()">☰</button>
+</nav>
+
+<!-- MOBILE NAV -->
+<div class="nav-collapsible d-md-none" id="mobileNav">
+    <ul class="nav-links">
+        <li><a href="{% url 'taskhero:home' %}">Home</a></li>
+        <li><a href="{% url 'taskhero:dashboard' %}">Dashboard</a></li>
+    </ul>
+    <div class="nav-right" style="margin-top:0.5rem;">
+        {% if request.user.is_authenticated %}
+            <form action="{% url 'user:logout' %}" method="POST" style="margin:0;">
+                {% csrf_token %}
+                <button type="submit" class="btn-logout w-100">Log out</button>
+            </form>
+        {% else %}
+            <a href="{% url 'user:login' %}" class="btn-nav-outline text-center">Login</a>
+            <a href="{% url 'user:signup' %}" class="btn-nav-primary text-center">Get Started</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- HERO (home only) -->
+{% if request.path == '/' %}
+<div class="hero fade-in">
+    <h1>The Go-To Hub<br>for All Your To-Dos</h1>
+    <p>Your essential tool for managing tasks and boosting productivity.</p>
+    {% if request.user.is_authenticated %}
+        <p style="color:var(--indigo-light); font-weight:500; margin-top:20px;">
+            Welcome back, {{ request.user.username }} 👋
+        </p>
+    {% else %}
+        <a href="{% url 'user:signup' %}" class="btn-primary-action mt-3">Start now — it's free</a>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- MAIN -->
+<div class="container py-4">
+    <div class="glass-card fade-in">
+        {% block content %}{% endblock %}
+    </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+    © 2026 TaskHero &nbsp;·&nbsp; Built with focus ⚡
+</footer>
+
+<script>
+function toggleMobileNav() {
+    document.getElementById('mobileNav').classList.toggle('open');
+}
+
+const fadeEls = document.querySelectorAll('.fade-in');
+const reveal = () => fadeEls.forEach(el => {
+    if (el.getBoundingClientRect().top < window.innerHeight - 40) el.classList.add('show');
+});
+window.addEventListener('scroll', reveal);
+window.addEventListener('load', reveal);
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

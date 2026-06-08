@@ -1,0 +1,202 @@
+{% extends 'partials/base.html' %}
+{% block title %}Login • TaskHero{% endblock %}
+
+{% block extra_head %}
+<style>
+    .auth-wrap {
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 0.5rem 0;
+    }
+    .auth-heading {
+        font-family: 'Inter', sans-serif;
+        font-size: 1.6rem;
+        font-weight: 800;
+        letter-spacing: -0.4px;
+        margin-bottom: 4px;
+    }
+    .auth-sub {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        margin-bottom: 1.75rem;
+    }
+    .auth-accent {
+        width: 28px; height: 3px;
+        background: var(--indigo);
+        border-radius: 2px;
+        margin-bottom: 1.25rem;
+    }
+    .field-label {
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+        display: block;
+    }
+    .field-wrap { position: relative; margin-bottom: 14px; }
+    .eye-toggle {
+        position: absolute;
+        right: 12px; top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: var(--text-dim);
+        font-size: 1rem;
+        transition: color 0.2s;
+        background: none;
+        border: none;
+        padding: 0;
+        line-height: 1;
+    }
+    .eye-toggle:hover { color: var(--text-muted); }
+    .error-box {
+        background: rgba(239,68,68,0.08);
+        border: 1px solid rgba(239,68,68,0.25);
+        border-radius: var(--radius-sm);
+        padding: 10px 14px;
+        margin-bottom: 16px;
+        font-size: 0.82rem;
+        color: #F87171;
+    }
+    .auth-divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 1.25rem 0;
+        color: var(--text-dim);
+        font-size: 0.78rem;
+    }
+    .auth-divider::before, .auth-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+    }
+    .btn-social {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        padding: 9px;
+        border-radius: var(--radius-sm);
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: 0.2s;
+        margin-bottom: 8px;
+        font-family: 'Inter', sans-serif;
+    }
+    .btn-social-google {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid var(--border-hover);
+        color: var(--text-primary);
+    }
+    .btn-social-google:hover { background: rgba(255,255,255,0.08); }
+    .btn-social-github {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid var(--border);
+        color: var(--text-muted);
+    }
+    .btn-social-github:hover { background: rgba(255,255,255,0.07); color: var(--text-primary); }
+    .auth-footer-link {
+        text-align: center;
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        margin-top: 1.25rem;
+    }
+    .auth-footer-link a { color: var(--indigo-light); text-decoration: none; }
+    .auth-footer-link a:hover { text-decoration: underline; }
+    .btn-submit {
+        width: 100%;
+        padding: 10px;
+        background: var(--indigo);
+        color: #fff;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s;
+        margin-top: 4px;
+    }
+    .btn-submit:hover { background: #4a3fd6; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+    <div class="auth-accent"></div>
+    <h2 class="auth-heading">Welcome back</h2>
+    <p class="auth-sub">Sign in to your TaskHero account</p>
+
+    {% if form.errors %}
+    <div class="error-box">
+        {% for field in form %}{% for error in field.errors %}<div>{{ error }}</div>{% endfor %}{% endfor %}
+        {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="POST" autocomplete="off">
+        {% csrf_token %}
+
+        <div class="field-wrap">
+            <label class="field-label" for="id_username">Username</label>
+            <input
+                type="text"
+                name="username"
+                id="id_username"
+                class="form-control"
+                placeholder="Enter your username"
+                value="{% if form.errors %}{{ form.username.value|default:'' }}{% endif %}"
+                autocomplete="off"
+                required>
+        </div>
+
+        <div class="field-wrap">
+            <label class="field-label" for="id_password">Password</label>
+            <input
+                type="password"
+                name="password"
+                id="id_password"
+                class="form-control"
+                placeholder="Enter your password"
+                autocomplete="new-password"
+                style="padding-right: 2.5rem;"
+                required>
+            <button type="button" class="eye-toggle" onclick="togglePwd('id_password', this)">
+                <i class="ti ti-eye"></i>
+            </button>
+        </div>
+
+        <button type="submit" class="btn-submit">Sign in</button>
+    </form>
+
+    <div class="auth-divider">or continue with</div>
+
+    <button class="btn-social btn-social-google">
+        <i class="ti ti-brand-google"></i> Google
+    </button>
+    <button class="btn-social btn-social-github">
+        <i class="ti ti-brand-github"></i> GitHub
+    </button>
+
+    <div class="auth-footer-link">
+        Don't have an account? <a href="{% url 'user:signup' %}">Sign up</a>
+    </div>
+</div>
+
+<script>
+function togglePwd(id, btn) {
+    const input = document.getElementById(id);
+    const icon = btn.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'ti ti-eye-off';
+    } else {
+        input.type = 'password';
+        icon.className = 'ti ti-eye';
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,128 @@
+{% extends 'partials/base.html' %}
+{% block title %}Create Task • TaskHero{% endblock %}
+
+{% block extra_head %}
+<style>
+    .form-wrap {
+        max-width: 580px;
+        margin: 0 auto;
+    }
+    .form-page-header {
+        margin-bottom: 1.75rem;
+    }
+    .form-page-header h2 {
+        font-family: 'Inter', sans-serif;
+        font-size: 1.4rem;
+        font-weight: 800;
+        letter-spacing: -0.3px;
+        margin-bottom: 4px;
+    }
+    .form-page-header p {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin: 0;
+    }
+    .field-accent {
+        width: 24px; height: 3px;
+        background: var(--indigo);
+        border-radius: 2px;
+        margin-bottom: 1rem;
+    }
+    .field-label {
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+        display: block;
+    }
+    .field-wrap { margin-bottom: 16px; }
+    .error-box {
+        background: rgba(239,68,68,0.08);
+        border: 1px solid rgba(239,68,68,0.25);
+        border-radius: var(--radius-sm);
+        padding: 10px 14px;
+        margin-bottom: 16px;
+        font-size: 0.82rem;
+        color: #F87171;
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 500px) { .form-row { grid-template-columns: 1fr; } }
+    .btn-submit {
+        width: 100%;
+        padding: 10px;
+        background: var(--indigo);
+        color: #fff;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s;
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+    .btn-submit:hover { background: #4a3fd6; }
+    .form-divider {
+        height: 1px;
+        background: var(--border);
+        margin: 1.25rem 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-wrap">
+    <div class="field-accent"></div>
+    <div class="form-page-header">
+        <h2>Create New Task</h2>
+        <p>Organize your work and stay productive</p>
+    </div>
+
+    {% if form.errors %}
+    <div class="error-box">
+        {% for field in form %}{% for error in field.errors %}<div>{{ error }}</div>{% endfor %}{% endfor %}
+        {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="field-wrap">
+            <label class="field-label">Title</label>
+            {{ form.title }}
+        </div>
+
+        <div class="field-wrap">
+            <label class="field-label">Description</label>
+            {{ form.description }}
+        </div>
+
+        <div class="form-row">
+            <div class="field-wrap">
+                <label class="field-label">Due Date</label>
+                {{ form.due_date.as_widget }}
+            </div>
+            <div class="field-wrap">
+                <label class="field-label">Status</label>
+                {{ form.status }}
+            </div>
+        </div>
+
+        <div class="field-wrap">
+            <label class="field-label">Priority</label>
+            {{ form.priority }}
+        </div>
+
+        <div class="form-divider"></div>
+
+        <button type="submit" class="btn-submit">
+            <i class="ti ti-plus"></i> Create Task
+        </button>
+    </form>
+</div>
+{% endblock %}

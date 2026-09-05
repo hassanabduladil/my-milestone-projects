@@ -138,6 +138,11 @@ def get_transaction_history(user_id):
 
 # ----------------- CREATIVE JS & UI HELPERS -----------------
 
+def render_html(html_str):
+    """Safely renders HTML without markdown code-block interpretation by stripping leading whitespace."""
+    cleaned = "\n".join(line.strip() for line in html_str.strip().splitlines())
+    st.markdown(cleaned, unsafe_allow_html=True)
+
 def trigger_confetti():
     """Lightweight pure JS celebratory confetti"""
     components.html("""
@@ -271,7 +276,7 @@ def render_copy_widget(account_number):
 def render_virtual_card(full_name, account_number, balance):
     """Renders a sleek luxury Black Card interface"""
     formatted_acc = f"{account_number[:4]}  {account_number[4:]}"
-    st.markdown(f"""
+    render_html(f"""
     <div style="
         background: linear-gradient(135deg, #090e17 0%, #1e1b4b 55%, #0d1527 100%);
         border-radius: 24px;
@@ -283,7 +288,6 @@ def render_virtual_card(full_name, account_number, balance):
         overflow: hidden;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     ">
-        <!-- Ambient decorative sheen -->
         <div style="
             position: absolute;
             top: -50px;
@@ -305,7 +309,6 @@ def render_virtual_card(full_name, account_number, balance):
             pointer-events: none;
         "></div>
 
-        <!-- Top Row: Card Brand & EMV Chip -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px;">
             <div style="display: flex; align-items: center; gap: 9px;">
                 <div style="
@@ -327,7 +330,6 @@ def render_virtual_card(full_name, account_number, balance):
                 </div>
             </div>
             
-            <!-- Metallic EMV Chip & NFC -->
             <div style="display: flex; align-items: center; gap: 14px;">
                 <div style="
                     width: 40px;
@@ -348,7 +350,6 @@ def render_virtual_card(full_name, account_number, balance):
             </div>
         </div>
 
-        <!-- Middle: Balance -->
         <div style="margin-bottom: 22px;">
             <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #a5b4fc; margin-bottom: 5px;">
                 Total Available Balance
@@ -358,7 +359,6 @@ def render_virtual_card(full_name, account_number, balance):
             </div>
         </div>
 
-        <!-- Bottom Row: Cardholder & Account Number -->
         <div style="display: flex; justify-content: space-between; align-items: flex-end; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.12);">
             <div>
                 <div style="font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; opacity: 0.65;">
@@ -378,10 +378,10 @@ def render_virtual_card(full_name, account_number, balance):
             </div>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """)
 
 def set_custom_css():
-    st.markdown("""
+    render_html("""
         <style>
         /* Luxury Fintech Styling */
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -407,25 +407,26 @@ def set_custom_css():
         div.stButton > button {
             background: var(--secondary-background-color) !important;
             color: var(--text-color) !important;
-            border: 1px solid rgba(128, 128, 128, 0.16) !important;
+            border: 1px solid rgba(128, 128, 128, 0.18) !important;
             border-top: 4px solid #6366f1 !important;
-            border-radius: 18px !important;
-            padding: 14px 10px !important;
-            font-size: 15px !important;
+            border-radius: 16px !important;
+            padding: 12px 10px !important;
+            font-size: 16px !important;
             font-weight: 700 !important;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06) !important;
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
-            height: 105px !important;
+            height: 85px !important;
             width: 100% !important;
-            white-space: pre-line !important;
-            line-height: 1.35 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
         }
         
         div.stButton > button:hover {
             border-top: 4px solid #06b6d4 !important;
             color: #6366f1 !important;
-            transform: translateY(-4px) scale(1.01) !important;
-            box-shadow: 0 12px 28px rgba(99, 102, 241, 0.18) !important;
+            transform: translateY(-3px) scale(1.01) !important;
+            box-shadow: 0 10px 24px rgba(99, 102, 241, 0.2) !important;
         }
 
         /* Form Confirmation Buttons */
@@ -517,7 +518,7 @@ def set_custom_css():
             transform: scale(1.02) !important;
         }
         </style>
-    """, unsafe_allow_html=True)
+    """)
 
 # ----------------- MAIN APP CONTROLLER -----------------
 
@@ -536,7 +537,7 @@ def main():
     # Unauthenticated View (Login / Sign Up)
     if st.session_state.user_id is None:
         # Creative Hero Banner
-        st.markdown("""
+        render_html("""
         <div style="text-align: center; padding: 25px 10px 15px 10px;">
             <div style="
                 display: inline-flex;
@@ -560,12 +561,12 @@ def main():
                 Experience seamless payments, instant transfers, and institutional-grade security.
             </p>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
         tab1, tab2 = st.tabs(["🔐 Sign In", "✨ Open Account"])
         
         with tab1:
-            st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
+            render_html("<div style='margin-top: 15px;'></div>")
             with st.form("login_form"):
                 log_username = st.text_input("Username", placeholder="e.g. joshua_21")
                 log_password = st.text_input("Password", type="password", placeholder="••••••••")
@@ -584,10 +585,10 @@ def main():
                             st.error(result)
                             
         with tab2:
-            st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
+            render_html("<div style='margin-top: 15px;'></div>")
             
-            # Interactive visual requirements card
-            st.markdown("""
+            # Visual requirements card
+            render_html("""
             <div style="
                 background: var(--secondary-background-color);
                 border: 1px solid rgba(99, 102, 241, 0.2);
@@ -605,7 +606,7 @@ def main():
                     • <b>Opening Deposit:</b> Minimum opening capital is <b>₦2,000</b>.
                 </div>
             </div>
-            """, unsafe_allow_html=True)
+            """)
                     
             with st.form("signup_form"):
                 c1, c2 = st.columns(2)
@@ -664,13 +665,13 @@ def main():
         # Logout row
         logout_col1, logout_col2 = st.columns([4, 1])
         with logout_col2:
-            st.markdown("<div class='logout-btn'>", unsafe_allow_html=True)
+            render_html("<div class='logout-btn'>")
             if st.button("Log Out", key="logout_btn"):
                 st.session_state.user_id = None
                 st.session_state.username = None
                 st.session_state.current_operation = None
                 st.rerun()
-            st.markdown("</div>", unsafe_allow_html=True)
+            render_html("</div>")
 
         # MAIN DASHBOARD VIEW
         if st.session_state.current_operation is None:
@@ -678,55 +679,55 @@ def main():
             render_virtual_card(full_name, account_number, current_balance)
 
             # Operations Grid Title
-            st.markdown("""
-            <div style="display: flex; justify-content: space-between; align-items: center; margin: 15px 0 10px 0;">
-                <span style="font-weight: 800; font-size: 1.1rem; letter-spacing: -0.3px;">Core Operations</span>
-                <span style="font-size: 12px; color: #6366f1; font-weight: 600;">24/7 Fast Settlement</span>
+            render_html("""
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 15px 0 12px 0;">
+                <span style="font-weight: 800; font-size: 1.1rem; letter-spacing: -0.3px;">Operations</span>
+                <span style="font-size: 12px; color: #6366f1; font-weight: 600;">Fast Settlement</span>
             </div>
-            """, unsafe_allow_html=True)
+            """)
             
-            # Action Cards in 2 Columns
+            # Action Cards in 2 Columns with the exact beloved operation names
             col1, col2 = st.columns(2)
             with col1:
-                if st.button("📥 Deposit\nAdd Funds", use_container_width=True, key="op_dep"):
+                if st.button("💰 Deposit", use_container_width=True, key="op_dep"):
                     st.session_state.current_operation = "deposit"
                     st.rerun()
-                if st.button("⚡ Transfer\nSend Money", use_container_width=True, key="op_trans"):
+                if st.button("💸 Transfer", use_container_width=True, key="op_trans"):
                     st.session_state.current_operation = "transfer"
                     st.rerun()
-                if st.button("📜 History\nTransactions", use_container_width=True, key="op_hist"):
+                if st.button("📜 Transaction History", use_container_width=True, key="op_hist"):
                     st.session_state.current_operation = "history"
                     st.rerun()
             with col2:
-                if st.button("🏧 Withdraw\nCash Payout", use_container_width=True, key="op_with"):
+                if st.button("💳 Withdraw", use_container_width=True, key="op_with"):
                     st.session_state.current_operation = "withdraw"
                     st.rerun()
-                if st.button("📊 Balance\nLive Breakdown", use_container_width=True, key="op_bal"):
+                if st.button("🏦 View Balance", use_container_width=True, key="op_bal"):
                     st.session_state.current_operation = "balance"
                     st.rerun()
-                if st.button("👤 Account\nCard & Limits", use_container_width=True, key="op_det"):
+                if st.button("👤 Account Details", use_container_width=True, key="op_det"):
                     st.session_state.current_operation = "details"
                     st.rerun()
                     
         # SPECIFIC OPERATION VIEWS
         else:
             # Back to Dashboard Button
-            st.markdown("<div class='back-btn' style='margin-bottom: 15px;'>", unsafe_allow_html=True)
+            render_html("<div class='back-btn' style='margin-bottom: 15px;'>")
             if st.button("⬅ Back to Dashboard"):
                 st.session_state.current_operation = None
                 st.rerun()
-            st.markdown("</div>", unsafe_allow_html=True)
+            render_html("</div>")
             
             op = st.session_state.current_operation
             
             # DEPOSIT
             if op == "deposit":
-                st.markdown("### 📥 Deposit Funds")
-                st.markdown("<p style='font-size: 13px; color: #8892b0;'>Instant credit into your Apex Reserve account.</p>", unsafe_allow_html=True)
+                st.markdown("### 💰 Deposit")
+                render_html("<p style='font-size: 13px; color: #8892b0;'>Instant credit into your account balance.</p>")
                 
                 with st.form("deposit_form"):
                     dep_amount = st.number_input("Enter Amount to Deposit (₦)", min_value=100, step=500, value=1000)
-                    submit_dep = st.form_submit_button("Confirm & Deposit Funds →", use_container_width=True)
+                    submit_dep = st.form_submit_button("Confirm Deposit →", use_container_width=True)
                     if submit_dep:
                         make_deposit(st.session_state.user_id, dep_amount)
                         trigger_confetti()
@@ -734,8 +735,8 @@ def main():
                         
             # WITHDRAW
             elif op == "withdraw":
-                st.markdown("### 🏧 Withdraw Cash")
-                st.markdown(f"<p style='font-size: 13px; color: #8892b0;'>Available to withdraw: <b>₦{current_balance:,.2f}</b></p>", unsafe_allow_html=True)
+                st.markdown("### 💳 Withdraw")
+                render_html(f"<p style='font-size: 13px; color: #8892b0;'>Available balance: <b>₦{current_balance:,.2f}</b></p>")
                 
                 with st.form("withdraw_form"):
                     with_amount = st.number_input("Enter Amount to Withdraw (₦)", min_value=100, step=500, value=500)
@@ -749,15 +750,15 @@ def main():
                             
             # BALANCE
             elif op == "balance":
-                st.markdown("### 📊 Account Financial Summary")
+                st.markdown("### 🏦 View Balance")
                 
                 col_b1, col_b2 = st.columns(2)
                 with col_b1:
-                    st.metric(label="Liquid Balance", value=f"₦{current_balance:,.2f}")
+                    st.metric(label="Current Balance", value=f"₦{current_balance:,.2f}")
                 with col_b2:
                     st.metric(label="Daily Outflow Limit", value="₦5,000,000.00")
                 
-                st.markdown("""
+                render_html("""
                 <div style="
                     background: var(--secondary-background-color);
                     border: 1px solid rgba(99, 102, 241, 0.2);
@@ -772,11 +773,11 @@ def main():
                         • Inflow Channel: Instant NIBSS / Internal Wire
                     </div>
                 </div>
-                """, unsafe_allow_html=True)
+                """)
                 
             # TRANSACTION HISTORY
             elif op == "history":
-                st.markdown("### 📜 Transaction Activity")
+                st.markdown("### 📜 Transaction History")
                 history = get_transaction_history(st.session_state.user_id)
                 
                 if not history:
@@ -794,7 +795,7 @@ def main():
                         desc = cp_name if cp_name and cp_name != "NULL" else ("Cash Inflow" if is_credit else "Withdrawal")
                         acc_desc = f" • Acc: {cp_acc}" if cp_acc and cp_acc != "NULL" else ""
 
-                        st.markdown(f"""
+                        render_html(f"""
                         <div style="
                             background: var(--secondary-background-color);
                             border: 1px solid rgba(128, 128, 128, 0.15);
@@ -830,7 +831,7 @@ def main():
                                 <div style="font-size: 11px; color: #8892b0; margin-top: 1px;">{t_time}</div>
                             </div>
                         </div>
-                        """, unsafe_allow_html=True)
+                        """)
                     
                     # Expandable Raw Dataframe Table
                     with st.expander("🔍 View Raw Spreadsheet Table"):
@@ -840,13 +841,13 @@ def main():
                     
             # TRANSFER
             elif op == "transfer":
-                st.markdown("### ⚡ Instant Transfer")
-                st.markdown(f"<p style='font-size: 13px; color: #8892b0;'>Send funds instantly. Available balance: <b>₦{current_balance:,.2f}</b></p>", unsafe_allow_html=True)
+                st.markdown("### 💸 Transfer")
+                render_html(f"<p style='font-size: 13px; color: #8892b0;'>Send funds instantly. Available balance: <b>₦{current_balance:,.2f}</b></p>")
                 
                 with st.form("transfer_form"):
                     trans_account = st.text_input("Beneficiary 8-Digit Account Number", placeholder="e.g. 12345678")
                     trans_amount = st.number_input("Amount to Transfer (₦)", min_value=100, step=500, value=1000)
-                    submit_trans = st.form_submit_button("Authorize & Send Money →", use_container_width=True)
+                    submit_trans = st.form_submit_button("Authorize Transfer →", use_container_width=True)
                     
                     if submit_trans:
                         success, msg = make_transfer(st.session_state.user_id, trans_amount, trans_account.strip())
@@ -858,7 +859,7 @@ def main():
                             
             # ACCOUNT DETAILS & CARD
             elif op == "details":
-                st.markdown("### 👤 Account Profile & Card")
+                st.markdown("### 👤 Account Details")
                 
                 # Render the Virtual Card
                 render_virtual_card(full_name, account_number, current_balance)
@@ -866,7 +867,7 @@ def main():
                 # Interactive Copy Account Widget
                 render_copy_widget(account_number)
                 
-                st.markdown(f"""
+                render_html(f"""
                 <div style="
                     background: var(--secondary-background-color);
                     border: 1px solid rgba(128, 128, 128, 0.2);
@@ -891,7 +892,7 @@ def main():
                         <span style="font-weight: 700; font-size: 14px;">₦5,000,000.00</span>
                     </div>
                 </div>
-                """, unsafe_allow_html=True)
+                """)
 
 if __name__ == "__main__":
     main()

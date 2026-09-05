@@ -137,42 +137,36 @@ def get_transaction_history(user_id):
 def set_custom_css():
     st.markdown("""
         <style>
-        /* General app background */
-        .stApp {
-            background-color: #f4f7fb;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        /* Headers dynamic color */
+        h1, h2, h3, h4 {
+            color: var(--primary-color) !important;
         }
         
-        /* Headers */
-        h1, h2, h3 {
-            color: #1e3a8a;
-        }
-        
-        /* Custom styled buttons (like cards) */
+        /* Custom styled buttons (like cards) that respect theme variables */
         div.stButton > button {
-            background-color: #ffffff;
-            color: #1e3a8a;
-            border: 1px solid #e5e7eb;
+            background-color: var(--secondary-background-color);
+            color: var(--text-color);
+            border: 1px solid var(--primary-color);
             border-radius: 12px;
             padding: 20px;
             font-size: 16px;
             font-weight: 600;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             transition: all 0.3s ease;
             height: 120px;
         }
         
         div.stButton > button:hover {
-            border-color: #3b82f6;
-            box-shadow: 0 8px 15px rgba(59, 130, 246, 0.15);
-            color: #2563eb;
+            border-color: var(--text-color);
+            color: var(--text-color);
             transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
         }
 
-        /* Specific back button style to not be massive */
+        /* Specific back button style */
         .back-btn div.stButton > button {
             height: 50px;
-            background-color: #f87171;
+            background-color: #ef4444;
             color: white;
             border: none;
             padding: 10px;
@@ -180,7 +174,7 @@ def set_custom_css():
         }
         
         .back-btn div.stButton > button:hover {
-            background-color: #ef4444;
+            background-color: #dc2626;
             color: white;
             transform: translateY(0px);
         }
@@ -207,7 +201,7 @@ def main():
         st.session_state.current_operation = None
 
     if st.session_state.user_id is None:
-        st.markdown("<h1 style='text-align: center; color: #1e3a8a;'>🏦 Apex Bank</h1>", unsafe_allow_html=True)
+        st.markdown("<h1 style='text-align: center; color: var(--primary-color);'>🏦 Apex Bank</h1>", unsafe_allow_html=True)
         tab1, tab2 = st.tabs(["Log In", "Sign Up"])
         
         with tab1:
@@ -386,10 +380,10 @@ def main():
                 details = get_account_details(st.session_state.user_id)
                 
                 st.markdown(f"""
-                <div style="background-color: white; padding: 20px; border-radius: 12px; border: 1px solid #d1d5db;">
-                    <h4 style="margin-top:0;">{details[0]}</h4>
-                    <p style="color: #6b7280; font-size: 14px;"><b>Username:</b> @{details[1]}</p>
-                    <hr style="margin: 10px 0;">
+                <div style="background-color: var(--secondary-background-color); color: var(--text-color); padding: 20px; border-radius: 12px; border: 1px solid var(--primary-color);">
+                    <h4 style="margin-top:0; color: var(--primary-color);">{details[0]}</h4>
+                    <p style="font-size: 14px;"><b>Username:</b> @{details[1]}</p>
+                    <hr style="margin: 10px 0; border-color: var(--primary-color);">
                     <p style="margin-bottom:0; font-size: 18px;"><b>Account Number:</b> <code style="font-size: 18px;">{details[2]}</code></p>
                 </div>
                 """, unsafe_allow_html=True)

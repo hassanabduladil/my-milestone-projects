@@ -386,8 +386,32 @@ def set_custom_css():
         /* Luxury Fintech Styling */
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         
-        * {
+        html, body, .stApp, p, h1, h2, h3, h4, h5, h6, input, label, button, span:not([data-testid="stIconMaterial"]) {
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+        }
+
+        /* Protect Streamlit icon ligatures and expander arrows */
+        [data-testid="stIconMaterial"], [class*="material-icons"], [class*="material-symbols"], span[data-testid="stIconMaterial"] {
+            font-family: "Material Symbols Rounded", "Material Icons", sans-serif !important;
+            font-feature-settings: 'liga' 1 !important;
+        }
+
+        /* Expander fix to ensure icon and label never overlap */
+        div[data-testid="stExpander"] details summary {
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+            padding: 10px 14px !important;
+            font-size: 14px !important;
+            font-weight: 600 !important;
+            border-radius: 12px !important;
+        }
+
+        div[data-testid="stExpander"] {
+            border-radius: 14px !important;
+            border: 1px solid rgba(128, 128, 128, 0.2) !important;
+            overflow: hidden !important;
+            margin-top: 15px !important;
         }
 
         /* Subtle ambient glow on the page */
@@ -834,7 +858,7 @@ def main():
                         """)
                     
                     # Expandable Raw Dataframe Table
-                    with st.expander("🔍 View Raw Spreadsheet Table"):
+                    with st.expander("View Full Statement (Spreadsheet Table)"):
                         df = pd.DataFrame(history, columns=["Type", "Amount", "Counterparty", "Account", "Timestamp"])
                         df["Amount"] = df["Amount"].apply(lambda x: f"₦{x:,.2f}")
                         st.dataframe(df, use_container_width=True, hide_index=True)

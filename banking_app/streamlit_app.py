@@ -214,18 +214,20 @@ def set_custom_css():
         /* Prevent columns from wrapping to lists on mobile screens (< 600px) */
         @media (max-width: 600px) {
             div[data-testid="stHorizontalBlock"] {
+                flex-direction: row !important;
                 flex-wrap: nowrap !important;
-                gap: 12px !important;
+                gap: 8px !important;
             }
             div[data-testid="column"] {
                 width: 50% !important;
-                flex: 1 1 calc(50% - 12px) !important;
-                min-width: calc(50% - 12px) !important;
+                flex: 1 1 50% !important;
+                min-width: 0 !important; /* allow shrinking */
             }
             div.stButton > button {
-                font-size: 14px !important;
-                height: 95px !important;
-                padding: 10px 5px !important;
+                font-size: 12px !important;
+                height: 80px !important;
+                padding: 5px !important;
+                border-top: 3px solid #3b82f6 !important; /* slightly thinner accent on mobile */
             }
         }
         

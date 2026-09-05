@@ -137,51 +137,96 @@ def get_transaction_history(user_id):
 def set_custom_css():
     st.markdown("""
         <style>
+        /* Modern App styling & layout tweaks */
+        
         /* Headers dynamic color */
         h1, h2, h3, h4 {
             color: var(--primary-color) !important;
+            font-weight: 800 !important;
+            letter-spacing: -0.5px;
         }
         
-        /* Custom styled buttons (like cards) that respect theme variables */
+        /* Dashboard buttons to look like modern app cards */
         div.stButton > button {
             background-color: var(--secondary-background-color);
             color: var(--text-color);
-            border: 1px solid var(--primary-color);
-            border-radius: 12px;
-            padding: 20px;
-            font-size: 16px;
-            font-weight: 600;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            height: 120px;
+            border: 1px solid rgba(128, 128, 128, 0.15);
+            border-top: 4px solid #3b82f6; /* beautiful blue accent */
+            border-radius: 16px;
+            padding: 15px 10px;
+            font-size: 17px;
+            font-weight: 700;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            height: 110px;
+            width: 100%;
         }
         
         div.stButton > button:hover {
-            border-color: var(--text-color);
-            color: var(--text-color);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+            border-top: 4px solid #8b5cf6; /* purple accent on hover */
+            color: #8b5cf6 !important;
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
         }
 
-        /* Specific back button style */
+        /* Specific back button style override */
         .back-btn div.stButton > button {
             height: 50px;
-            background-color: #ef4444;
-            color: white;
+            background-color: #ef4444 !important;
+            color: white !important;
             border: none;
+            border-top: none;
             padding: 10px;
-            border-radius: 8px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
         }
         
         .back-btn div.stButton > button:hover {
-            background-color: #dc2626;
-            color: white;
-            transform: translateY(0px);
+            background-color: #dc2626 !important;
+            color: white !important;
+            transform: translateY(-2px);
         }
 
-        /* Input fields */
+        /* Specific logout button style override */
+        .logout-btn div.stButton > button {
+            height: 45px;
+            background-color: transparent !important;
+            color: var(--text-color) !important;
+            border: 1px solid rgba(128, 128, 128, 0.3);
+            border-top: 1px solid rgba(128, 128, 128, 0.3);
+            border-radius: 20px;
+            box-shadow: none;
+            font-size: 14px;
+        }
+
+        .logout-btn div.stButton > button:hover {
+            background-color: rgba(239, 68, 68, 0.1) !important;
+            color: #ef4444 !important;
+            border-color: #ef4444 !important;
+            transform: scale(1.02);
+        }
+
+        /* Input fields rounded styling */
         div[data-baseweb="input"] {
-            border-radius: 8px;
+            border-radius: 12px;
+        }
+
+        /* Prevent columns from wrapping to lists on mobile screens (< 600px) */
+        @media (max-width: 600px) {
+            div[data-testid="stHorizontalBlock"] {
+                flex-wrap: nowrap !important;
+                gap: 12px !important;
+            }
+            div[data-testid="column"] {
+                width: 50% !important;
+                flex: 1 1 calc(50% - 12px) !important;
+                min-width: calc(50% - 12px) !important;
+            }
+            div.stButton > button {
+                font-size: 14px !important;
+                height: 95px !important;
+                padding: 10px 5px !important;
+            }
         }
         
         </style>
@@ -273,11 +318,13 @@ def main():
             st.title(f"Hello, {st.session_state.username} 👋")
         with col_logout:
             st.write("") # spacing
+            st.markdown("<div class='logout-btn'>", unsafe_allow_html=True)
             if st.button("Log Out", key="logout"):
                 st.session_state.user_id = None
                 st.session_state.username = None
                 st.session_state.current_operation = None
                 st.rerun()
+            st.markdown("</div>", unsafe_allow_html=True)
 
         st.divider()
 
@@ -380,10 +427,10 @@ def main():
                 details = get_account_details(st.session_state.user_id)
                 
                 st.markdown(f"""
-                <div style="background-color: var(--secondary-background-color); color: var(--text-color); padding: 20px; border-radius: 12px; border: 1px solid var(--primary-color);">
+                <div style="background-color: var(--secondary-background-color); color: var(--text-color); padding: 20px; border-radius: 12px; border: 1px solid var(--primary-color); box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
                     <h4 style="margin-top:0; color: var(--primary-color);">{details[0]}</h4>
                     <p style="font-size: 14px;"><b>Username:</b> @{details[1]}</p>
-                    <hr style="margin: 10px 0; border-color: var(--primary-color);">
+                    <hr style="margin: 10px 0; border-color: rgba(128, 128, 128, 0.2);">
                     <p style="margin-bottom:0; font-size: 18px;"><b>Account Number:</b> <code style="font-size: 18px;">{details[2]}</code></p>
                 </div>
                 """, unsafe_allow_html=True)

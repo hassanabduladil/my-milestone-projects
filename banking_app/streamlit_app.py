@@ -380,6 +380,49 @@ def render_virtual_card(full_name, account_number, balance):
     </div>
     """)
 
+def render_success_screen(title, message, again_label="Go Again"):
+    """Displays a clean celebratory transaction receipt screen without the form"""
+    trigger_confetti()
+    render_html(f"""
+    <div style="
+        background: var(--secondary-background-color);
+        border: 1px solid rgba(16, 185, 129, 0.35);
+        border-radius: 20px;
+        padding: 30px 24px;
+        text-align: center;
+        margin: 15px 0 25px 0;
+        box-shadow: 0 10px 30px rgba(16, 185, 129, 0.12);
+    ">
+        <div style="
+            width: 62px;
+            height: 62px;
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            font-weight: 800;
+            margin: 0 auto 16px auto;
+            border: 2px solid rgba(16, 185, 129, 0.35);
+        ">✓</div>
+        <h3 style="margin: 0 0 10px 0; color: #10b981 !important; font-size: 1.45rem;">{title}</h3>
+        <p style="margin: 0; font-size: 15px; opacity: 0.95; color: var(--text-color); line-height: 1.5;">{message}</p>
+    </div>
+    """)
+    
+    col_again, col_dash = st.columns(2)
+    with col_again:
+        if st.button(f"🔄 {again_label}", use_container_width=True, key="btn_go_again"):
+            st.session_state.last_tx_success = None
+            st.rerun()
+    with col_dash:
+        if st.button("🏠 Back to Dashboard", use_container_width=True, key="btn_return_dash"):
+            st.session_state.last_tx_success = None
+            st.session_state.current_operation = None
+            st.rerun()
+
 def set_custom_css():
     render_html("""
         <style>
@@ -394,24 +437,6 @@ def set_custom_css():
         [data-testid="stIconMaterial"], [class*="material-icons"], [class*="material-symbols"], span[data-testid="stIconMaterial"] {
             font-family: "Material Symbols Rounded", "Material Icons", sans-serif !important;
             font-feature-settings: 'liga' 1 !important;
-        }
-
-        /* Expander fix to ensure icon and label never overlap */
-        div[data-testid="stExpander"] details summary {
-            display: flex !important;
-            align-items: center !important;
-            gap: 10px !important;
-            padding: 10px 14px !important;
-            font-size: 14px !important;
-            font-weight: 600 !important;
-            border-radius: 12px !important;
-        }
-
-        div[data-testid="stExpander"] {
-            border-radius: 14px !important;
-            border: 1px solid rgba(128, 128, 128, 0.2) !important;
-            overflow: hidden !important;
-            margin-top: 15px !important;
         }
 
         /* Subtle ambient glow on the page */
@@ -557,6 +582,8 @@ def main():
         st.session_state.username = None
     if "current_operation" not in st.session_state:
         st.session_state.current_operation = None
+    if "last_tx_success" not in st.session_state:
+        st.session_state.last_tx_success = None
 
     # Unauthenticated View (Login / Sign Up)
     if st.session_state.user_id is None:
@@ -694,6 +721,7 @@ def main():
                 st.session_state.user_id = None
                 st.session_state.username = None
                 st.session_state.current_operation = None
+                st.session_state.last_tx_success = None
                 st.rerun()
             render_html("</div>")
 
@@ -710,26 +738,32 @@ def main():
             </div>
             """)
             
-            # Action Cards in 2 Columns with the exact beloved operation names
+            # Action Cards in 2 Columns with beloved operation names
             col1, col2 = st.columns(2)
             with col1:
                 if st.button("💰 Deposit", use_container_width=True, key="op_dep"):
+                    st.session_state.last_tx_success = None
                     st.session_state.current_operation = "deposit"
                     st.rerun()
                 if st.button("💸 Transfer", use_container_width=True, key="op_trans"):
+                    st.session_state.last_tx_success = None
                     st.session_state.current_operation = "transfer"
                     st.rerun()
                 if st.button("📜 Transaction History", use_container_width=True, key="op_hist"):
+                    st.session_state.last_tx_success = None
                     st.session_state.current_operation = "history"
                     st.rerun()
             with col2:
                 if st.button("💳 Withdraw", use_container_width=True, key="op_with"):
+                    st.session_state.last_tx_success = None
                     st.session_state.current_operation = "withdraw"
                     st.rerun()
                 if st.button("🏦 View Balance", use_container_width=True, key="op_bal"):
+                    st.session_state.last_tx_success = None
                     st.session_state.current_operation = "balance"
                     st.rerun()
                 if st.button("👤 Account Details", use_container_width=True, key="op_det"):
+                    st.session_state.last_tx_success = None
                     st.session_state.current_operation = "details"
                     st.rerun()
                     
@@ -738,6 +772,7 @@ def main():
             # Back to Dashboard Button
             render_html("<div class='back-btn' style='margin-bottom: 15px;'>")
             if st.button("⬅ Back to Dashboard"):
+                st.session_state.last_tx_success = None
                 st.session_state.current_operation = None
                 st.rerun()
             render_html("</div>")
@@ -746,31 +781,52 @@ def main():
             
             # DEPOSIT
             if op == "deposit":
-                st.markdown("### 💰 Deposit")
-                render_html("<p style='font-size: 13px; color: #8892b0;'>Instant credit into your account balance.</p>")
-                
-                with st.form("deposit_form"):
-                    dep_amount = st.number_input("Enter Amount to Deposit (₦)", min_value=100, step=500, value=1000)
-                    submit_dep = st.form_submit_button("Confirm Deposit →", use_container_width=True)
-                    if submit_dep:
-                        make_deposit(st.session_state.user_id, dep_amount)
-                        trigger_confetti()
-                        st.success(f"Deposit Successful! ₦{dep_amount:,.2f} added to your account. ✅")
+                if st.session_state.get("last_tx_success") and st.session_state.last_tx_success.get("op") == "deposit":
+                    render_success_screen(
+                        title="Deposit Successful!",
+                        message=st.session_state.last_tx_success["msg"],
+                        again_label="Deposit Again"
+                    )
+                else:
+                    st.markdown("### 💰 Deposit")
+                    render_html("<p style='font-size: 13px; color: #8892b0;'>Instant credit into your account balance.</p>")
+                    
+                    with st.form("deposit_form"):
+                        dep_amount = st.number_input("Enter Amount to Deposit (₦)", min_value=100, step=500, value=1000)
+                        submit_dep = st.form_submit_button("Confirm Deposit →", use_container_width=True)
+                        if submit_dep:
+                            make_deposit(st.session_state.user_id, dep_amount)
+                            st.session_state.last_tx_success = {
+                                "op": "deposit",
+                                "msg": f"₦{dep_amount:,.2f} has been deposited into your account successfully."
+                            }
+                            st.rerun()
                         
             # WITHDRAW
             elif op == "withdraw":
-                st.markdown("### 💳 Withdraw")
-                render_html(f"<p style='font-size: 13px; color: #8892b0;'>Available balance: <b>₦{current_balance:,.2f}</b></p>")
-                
-                with st.form("withdraw_form"):
-                    with_amount = st.number_input("Enter Amount to Withdraw (₦)", min_value=100, step=500, value=500)
-                    submit_with = st.form_submit_button("Confirm Withdrawal →", use_container_width=True)
-                    if submit_with:
-                        success, msg = make_withdrawal(st.session_state.user_id, with_amount)
-                        if success:
-                            st.success(msg + " ✅")
-                        else:
-                            st.error(msg + " ❌")
+                if st.session_state.get("last_tx_success") and st.session_state.last_tx_success.get("op") == "withdraw":
+                    render_success_screen(
+                        title="Withdrawal Successful!",
+                        message=st.session_state.last_tx_success["msg"],
+                        again_label="Withdraw Again"
+                    )
+                else:
+                    st.markdown("### 💳 Withdraw")
+                    render_html(f"<p style='font-size: 13px; color: #8892b0;'>Available balance: <b>₦{current_balance:,.2f}</b></p>")
+                    
+                    with st.form("withdraw_form"):
+                        with_amount = st.number_input("Enter Amount to Withdraw (₦)", min_value=100, step=500, value=500)
+                        submit_with = st.form_submit_button("Confirm Withdrawal →", use_container_width=True)
+                        if submit_with:
+                            success, msg = make_withdrawal(st.session_state.user_id, with_amount)
+                            if success:
+                                st.session_state.last_tx_success = {
+                                    "op": "withdraw",
+                                    "msg": f"₦{with_amount:,.2f} has been withdrawn successfully."
+                                }
+                                st.rerun()
+                            else:
+                                st.error(msg + " ❌")
                             
             # BALANCE
             elif op == "balance":
@@ -807,7 +863,7 @@ def main():
                 if not history:
                     st.info("No recorded transactions yet. Make a deposit or transfer to see your history.")
                 else:
-                    # Render sleek custom activity cards
+                    # Render sleek custom activity cards without the raw spreadsheet table
                     for t in history:
                         t_type, amount, cp_name, cp_acc, t_time = t
                         is_credit = t_type.lower() in ["deposit", "transfer received", "transfer recieved"]
@@ -857,29 +913,33 @@ def main():
                         </div>
                         """)
                     
-                    # Expandable Raw Dataframe Table
-                    with st.expander("View Full Statement (Spreadsheet Table)"):
-                        df = pd.DataFrame(history, columns=["Type", "Amount", "Counterparty", "Account", "Timestamp"])
-                        df["Amount"] = df["Amount"].apply(lambda x: f"₦{x:,.2f}")
-                        st.dataframe(df, use_container_width=True, hide_index=True)
-                    
             # TRANSFER
             elif op == "transfer":
-                st.markdown("### 💸 Transfer")
-                render_html(f"<p style='font-size: 13px; color: #8892b0;'>Send funds instantly. Available balance: <b>₦{current_balance:,.2f}</b></p>")
-                
-                with st.form("transfer_form"):
-                    trans_account = st.text_input("Beneficiary 8-Digit Account Number", placeholder="e.g. 12345678")
-                    trans_amount = st.number_input("Amount to Transfer (₦)", min_value=100, step=500, value=1000)
-                    submit_trans = st.form_submit_button("Authorize Transfer →", use_container_width=True)
+                if st.session_state.get("last_tx_success") and st.session_state.last_tx_success.get("op") == "transfer":
+                    render_success_screen(
+                        title="Transfer Completed!",
+                        message=st.session_state.last_tx_success["msg"],
+                        again_label="Transfer Again"
+                    )
+                else:
+                    st.markdown("### 💸 Transfer")
+                    render_html(f"<p style='font-size: 13px; color: #8892b0;'>Send funds instantly. Available balance: <b>₦{current_balance:,.2f}</b></p>")
                     
-                    if submit_trans:
-                        success, msg = make_transfer(st.session_state.user_id, trans_amount, trans_account.strip())
-                        if success:
-                            trigger_confetti()
-                            st.success(msg + " ✅")
-                        else:
-                            st.error(msg + " ❌")
+                    with st.form("transfer_form"):
+                        trans_account = st.text_input("Beneficiary 8-Digit Account Number", placeholder="e.g. 12345678")
+                        trans_amount = st.number_input("Amount to Transfer (₦)", min_value=100, step=500, value=1000)
+                        submit_trans = st.form_submit_button("Authorize Transfer →", use_container_width=True)
+                        
+                        if submit_trans:
+                            success, msg = make_transfer(st.session_state.user_id, trans_amount, trans_account.strip())
+                            if success:
+                                st.session_state.last_tx_success = {
+                                    "op": "transfer",
+                                    "msg": msg
+                                }
+                                st.rerun()
+                            else:
+                                st.error(msg + " ❌")
                             
             # ACCOUNT DETAILS & CARD
             elif op == "details":
